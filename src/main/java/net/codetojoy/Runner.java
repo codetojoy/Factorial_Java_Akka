@@ -8,10 +8,9 @@ import net.codetojoy.message.*;
 
 public class Runner {
     public static void main(String[] args) {
-        int low = 2;
-        int high = 20;
-        var range = new Range(low, high);
-        ActorSystem<BeginCommand> supervisor = ActorSystem.create(Supervisor.create(range), "supervisor");
+        var rangeSize = 10;
+        var max = 30;
+        ActorSystem<BeginCommand> supervisor = ActorSystem.create(Supervisor.create(rangeSize, max), "supervisor");
         supervisor.tell(new BeginCommand("factorial"));
 
         try {

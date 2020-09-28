@@ -4,18 +4,20 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
+import java.util.*;
 
 import net.codetojoy.message.*;
 import net.codetojoy.util.Timer;
 
 public class Supervisor extends AbstractBehavior<BeginCommand> {
-    private static Range range;
+    private static int rangeSize;
+    private static int max;
+    // this is probably not necessary:
+    private static Map<String, ActorRef<ProcessRangeCommand>> workers = new HashMap<>();
 
-    public static Behavior<BeginCommand> create(Range range) {
-        Supervisor.range = range;
+    public static Behavior<BeginCommand> create(int rangeSize, int max) {
+        Supervisor.rangeSize = rangeSize;
+        Supervisor.max = max;
         return Behaviors.setup(Supervisor::new);
     }
 
@@ -38,11 +40,7 @@ public class Supervisor extends AbstractBehavior<BeginCommand> {
             ActorRef<CalcEvent> reporter = getContext().spawn(Reporter.create(), "reporter");
 
             // create workers
-            ActorRef<ProcessRangeCommand> worker = getContext().spawn(Worker.create(), "workerN");
-
-            // assign blocks to workers
-            var processRangeCommand = new ProcessRangeCommand(Supervisor.range, calculator, reporter);
-            worker.tell(processRangeCommand);
+            createWorkersPerRange(calculator, reporter);
 
             getContext().getLog().info("TRACER Supervisor {}", timer.getElapsed("onBeginCommand"));
         } catch (Exception ex) {
@@ -50,5 +48,29 @@ public class Supervisor extends AbstractBehavior<BeginCommand> {
         }
 
         return this;
+    }
+
+    protected void createWorkersPerRange(ActorRef<CalcCommand> calculator, ActorRef<CalcEvent> reporter) {
+        var isDone = false;
+        var rangeIndex = 1;
+        var ranges = new Ranges();
+
+        while (! isDone) {
+            var range =  ranges.getRange(rangeIndex, rangeSize, max);
+
+            // getContext().getLog().info("TRACER Supervisor created worker {} {}", range.low, range.high);
+            var workerName = "worker" + rangeIndex;
+            ActorRef<ProcessRangeCommand> worker = getContext().spawn(Worker.create(), workerName);
+            workers.put(workerName, worker);
+
+            // assign range to Worker
+            var processRangeCommand = new ProcessRangeCommand(range, calculator, reporter);
+            worker.tell(processRangeCommand);
+
+            if (range.high >= max) {
+                isDone = true;
+            }
+            rangeIndex++;
+        }
     }
 }

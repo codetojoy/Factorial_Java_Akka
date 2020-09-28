@@ -25,6 +25,13 @@ public class Worker extends AbstractBehavior<ProcessRangeCommand> {
         for (int a = range.low; a <= range.high; a++) {
             for (int b = range.low; b <= range.high; b++) {
                 for (int c = range.low; c <= range.high; c++) {
+                    /*
+                    if ((a == b) && (b == c)) {
+                        // sanity
+                        var name = "worker ?";
+                        getContext().getLog().info("TRACER {} cp LOOP {} {} {}", name, a, b, c);
+                    }
+                    */
                     var calcCommand = new CalcCommand(a, b, c, processRangeCommand.reporter);
                     processRangeCommand.calculator.tell(calcCommand);
                 }
