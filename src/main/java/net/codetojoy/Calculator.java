@@ -4,6 +4,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 
 import net.codetojoy.message.*;
+import net.codetojoy.service.Services;
 
 public class Calculator extends AbstractBehavior<CalcCommand> {
 
@@ -25,8 +26,10 @@ public class Calculator extends AbstractBehavior<CalcCommand> {
         int b = calcCommand.b;
         int c = calcCommand.c;
 
-        if ((a == b) && (b == c)) {
-            // getContext().getLog().info("TRACER Calculator match: {}", calcCommand.toString());
+        boolean isMatch = Services.getFactorialService().isEqual(a, b, c);
+
+        if (isMatch) {
+            getContext().getLog().info("TRACER Calculator match: {}", calcCommand.toString());
             boolean result = true;
             var calcEvent = new CalcEvent(a, b, c, result);
             calcCommand.replyTo.tell(calcEvent);

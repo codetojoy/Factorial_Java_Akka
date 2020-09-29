@@ -20,7 +20,14 @@ public class Reporter extends AbstractBehavior<CalcEvent> {
     }
 
     private Behavior<CalcEvent> onCalcEvent(CalcEvent calcEvent) {
-        getContext().getLog().info("TRACER Reporter received: {}", calcEvent.toString());
+        if (calcEvent.isMatch) {
+            var a = calcEvent.a;
+            var b = calcEvent.b;
+            var c = calcEvent.c;
+            getContext().getLog().info("TRACER Reporter MATCH {}! = {}! x {}!", a, b, c);
+        } else {
+            getContext().getLog().error("TRACER Reporter INTERNAL ERROR received: {}", calcEvent.toString());
+        }
 
         return this;
     }

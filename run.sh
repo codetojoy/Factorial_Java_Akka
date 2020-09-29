@@ -1,13 +1,15 @@
-#!/bin/bash 
+#!/bin/bash
 
-set -e 
+set -e
 
 ./gradlew -q clean cJ
 
 LOG_FILE=out.log
 rm -f $LOG_FILE
 
-./gradlew -q run | tee $LOG_FILE 
+RANGE_SIZE=10
+MAX=100
+./gradlew -q run --args "$RANGE_SIZE $MAX" | tee $LOG_FILE
 
 stat $LOG_FILE > /dev/null 2>&1
 
@@ -20,4 +22,4 @@ grep -i elapsed $LOG_FILE
 echo ""
 
 echo "count of Reporter received:"
-grep -i "tracer.*reporter.*received" $LOG_FILE | wc -l 
+grep -i "tracer reporter" $LOG_FILE
