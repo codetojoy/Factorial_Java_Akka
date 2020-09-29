@@ -6,8 +6,6 @@ import akka.actor.typed.ActorRef;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import net.codetojoy.message.*;
-
 public class RunnerTest {
 
     @ClassRule

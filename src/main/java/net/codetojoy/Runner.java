@@ -4,7 +4,7 @@ import akka.actor.typed.ActorSystem;
 import java.io.*;
 import java.util.List;
 
-import net.codetojoy.message.*;
+// import net.codetojoy.message.*;
 import net.codetojoy.service.Services;
 
 public class Runner {
@@ -12,9 +12,9 @@ public class Runner {
         var rangeSize = parseIntArg(args, 0);
         var max = parseIntArg(args, 1);
         Services.init(max);
-        
-        ActorSystem<BeginCommand> supervisor = ActorSystem.create(Supervisor.create(rangeSize, max), "supervisor");
-        supervisor.tell(new BeginCommand("factorial"));
+
+        ActorSystem<Supervisor.Command> supervisor = ActorSystem.create(Supervisor.create(rangeSize, max), "supervisor");
+        supervisor.tell(new Supervisor.BeginCommand("factorial"));
 
         try {
             promptForUserInput();
