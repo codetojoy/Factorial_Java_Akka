@@ -1,6 +1,7 @@
 package net.codetojoy;
 
 import akka.actor.typed.Behavior;
+import akka.actor.typed.PostStop;
 import akka.actor.typed.javadsl.*;
 import akka.actor.typed.ActorRef;
 
@@ -29,23 +30,19 @@ public class Worker extends AbstractBehavior<Worker.Command> {
 
     @Override
     public Receive<Worker.Command> createReceive() {
-        return newReceiveBuilder().onMessage(ProcessRangeCommand.class, this::onProcessRangeCommand).build();
+        return newReceiveBuilder()
+                   .onMessage(ProcessRangeCommand.class, this::onProcessRangeCommand)
+                   .onSignal(PostStop.class, signal -> onPostStop())
+                   .build();
     }
 
     private Behavior<Worker.Command> onProcessRangeCommand(ProcessRangeCommand processRangeCommand) {
 
         var range = processRangeCommand.range;
-        
+
         for (int a = range.low; a <= range.high; a++) {
             for (int b = range.low; b <= range.high; b++) {
                 for (int c = range.low; c <= range.high; c++) {
-                    /*
-                    if ((a == b) && (b == c)) {
-                        // sanity
-                        var name = "worker ?";
-                        getContext().getLog().info("TRACER {} cp LOOP {} {} {}", name, a, b, c);
-                    }
-                    */
                     var calcCommand = new Calculator.CalcCommand(a, b, c, processRangeCommand.reporter);
                     processRangeCommand.calculator.tell(calcCommand);
                 }
@@ -55,5 +52,10 @@ public class Worker extends AbstractBehavior<Worker.Command> {
         getContext().getLog().info("TRACER worker ({},{}) DONE", range.low, range.high);
 
         return this;
+    }
+
+    private Behavior<Command> onPostStop() {
+        getContext().getLog().info("TRACER worker STOPPED");
+        return Behaviors.stopped();
     }
 }
